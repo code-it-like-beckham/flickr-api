@@ -87,6 +87,10 @@ public class Dump {
 		String maxTakenDate = line.hasOption("max-taken-date") ? line.getOptionValue("max-taken-date") : null;
 
 		String bbox = line.hasOption("bounding-box") ? line.getOptionValue("bounding-box") : null;
+		if (bbox == null) {
+			System.err.println("bounding box parameter is required"); 
+			return;
+		}
 		// TODO: places.find 와 places.getInfo 를 이용하여 id로부터 bounding box 알아내기
 //		String woeID = line.hasOption("woe-id") ? line.getOptionValue("woe-id") : null;
 //		String placeID = line.hasOption("place-id") ? line.getOptionValue("place-id") : null;
@@ -163,20 +167,34 @@ public class Dump {
         		// 일정 수의 사진이 모아지면 디스크로 기록
         		
         		String filename = outputFilePrefix + "_" + index++ + ".json";
-        		PrintWriter writer = new PrintWriter(filename);
-	            for (String outputString : outputs.values())
-	            	writer.println(outputString);
-	            writer.close();
-	            
-	            System.out.println("flushed " + outputs.size() + " photos in " + filename);
-	            
+        		write(outputs, filename);
 	            outputs.clear();
         	}
         }
         
+        String filename = outputFilePrefix + "_" + index++ + ".json";
+		write(outputs, filename);
+		
         System.out.println("finished");
 	}
 
+	private static void write(Map<String, String> outputs, String filename) {
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(filename);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+        for (String outputString : outputs.values())
+        	writer.println(outputString);
+        writer.close();
+        
+        System.out.println("wrote " + outputs.size() + " photos in " + filename);
+        
+        outputs.clear();
+	}
 	
 	// 하나의 덤프 출력 파일에 포함되는 사진의 수
 	// (사실 이보다 많을 수도 있고 적을 수도 있고...)
